@@ -1,0 +1,61 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "rgs": {
+      "value": [
+          {
+              "subscriptionID": "",
+              "resourceGroupName": "rg-dns-network-westus-001",
+              "location": "westus"
+          }
+      ]
+    },
+    "createVnet": {
+      "value": true
+    },
+    "vnet": {
+      "value": {
+          "subscriptionID": "",
+          "resourceGroupName": "rg-dns-network-westus-001",
+          "location": "westus",
+          "addressPrefixes": [
+            "10.149.98.0/25"
+          ],
+          "subnets": [
+            {
+              "name": "Snet-core-pdr-outbound-westus", 
+              "subnetPrefix": "10.149.98.0/27"
+            },
+            {
+                "name": "AzureBastionSubnet",
+                "subnetPrefix": "10.149.98.64/26"
+            }
+          ]
+        }
+    },
+    "createVWAN": {
+      "value": true
+    },
+    "vwan": {
+      "value": {
+          "resourceGroupName": "rg-vwan-prod-eastus-001",
+          "subscriptionID": "",
+          "location": "eastus"
+      }
+    },
+    "vWANhubs": {
+      "value": [
+        {
+          "addressSpace": "10.149.96.0/23",
+          "location": "eastus",
+          "routingPreference": "ExpressRoute",
+          "virtualRouterAsn": 65515,
+          "minRoutingInfrastructureUnit": 2,
+          "publicIpsCount": 2,
+          "createSecurevHub": false
+        }
+      ]
+    }
+  }
+}
