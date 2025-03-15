@@ -139,7 +139,7 @@ stages:
                   az --version
                   az login --service-principal -u $(clientid) -p $(clientsecret) --tenant $(tenantid)
                   az account set --name ${{ parameters.subscriptionID }}
-                  az deployment sub what-if --name ${{ parameters.subscriptionID }}-vhubvnet-whatif --location ${{parameters.location}}  --template-file ./LandingZone/Network/$(bicepFileName) --parameters ./LandingZone/Network/Wave1_parameters/$(parameterFileName)
+                  az deployment sub what-if --name ${{ parameters.subscriptionID }}-vhubvnet-whatif --location ${{parameters.location}}  --template-file ./Network/$(bicepFileName) --parameters ./Network/parameters/$(parameterFileName)
 - stage: Deploy
   displayName: Deploy Resources
   dependsOn:
@@ -172,4 +172,4 @@ stages:
                     az --version
                     az login --service-principal -u $(clientid) -p $(clientsecret) --tenant $(tenantid)
                     az account set --name ${{ parameters.subscriptionID }}
-                    az deployment sub create --name ${{ parameters.subscriptionID }}-vhubvnet --location ${{parameters.location}}  --template-file ./LandingZone/Network/$(bicepFileName) --parameters ./LandingZone/Network/Wave1_parameters/$(parameterFileName)
+                    az deployment sub create --name ${{ parameters.subscriptionID }}-vhubvnet --location ${{parameters.location}}  --template-file ./Network/$(bicepFileName) --parameters ./Network/parameters/$(parameterFileName)
