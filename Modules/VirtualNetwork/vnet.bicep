@@ -46,20 +46,6 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2023-04-01' = {
   }
 }
 
-module networkSecurityGroup '../Networksecuritygroup/inboundNSG.bicep' = [for subnet in subnets: {
-  name: 'nsg-${subnet.name}'
-  params: {
-    location: location
-    nsgName: (contains(subnet, 'nsg')) ? subnet.nsg.name : 'nsg'
-    subnetName: subnet.name
-    //vnetName: name
-    securityRules: contains(subnet, 'nsg') ? subnet.nsg.rules : []
-    tags: tags
-  }
-}]
-
-
-
 @description('The resource group the virtual network was deployed into.')
 output resourceGroupName string = resourceGroup().name
 
