@@ -21,7 +21,7 @@ param vWANhubs object [] = []
 param vnet object = {}
 param createVnet bool = false
 
-param hubVirtualNetworkConnection object = {}
+param createHubVirtualNetworkConnection bool = false
 
 param env string = 'main'
 param purpose string = 'dns'
@@ -87,12 +87,12 @@ module vwanHub '../Modules/VirtualHub/virtualHub.bicep' = [for i in range(0, len
   ]
 }]
 
-module connectVnetHub '../Modules/VirtualHub/connectVnet.bicep' = if (!empty(hubVirtualNetworkConnection)){
+module connectVnetHub '../Modules/VirtualHub/connectVnet.bicep' = if (createHubVirtualNetworkConnection){
   name: 'connect-vnet-to-hub'
   scope: resourceGroup(vwan.subscriptionID, vwan.resourceGroupName)
   params: {
-    vhubName: hubVirtualNetworkConnection.vhubName 
-    virtualNetworkID: (createVnet) ? virtualnetwork.outputs.resourceId : vnet.id //'vnet-${env}-${purpose}-${location}-001'
+    vhubName: 'vwanhub-${env}-${stage}-${vnet.location}-001'
+    virtualNetworkID: (createVnet) ? virtualnetwork.outputs.resourceId : vnet.id
     connectionName: '${purpose}-vnet-${env}'
   }
   dependsOn: [
