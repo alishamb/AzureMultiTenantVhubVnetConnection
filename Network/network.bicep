@@ -105,7 +105,7 @@ module connectVnetHub '../../Modules/VirtualHub/connectVnet.bicep' = if (!empty(
   params: {
     vhubName: hubVirtualNetworkConnection.vhubName 
     virtualNetworkID: (createVnet) ? virtualnetwork.outputs.resourceId : vnet.id //'vnet-${env}-${purpose}-${location}-001'
-    connectionName: '${purpose}-vnet-${env}' // hubVirtualNetworkConnection.connection //'vnet-${env}-${purpose}-${location}-001-${hubVirtualNetworkConnection.vhubName}-connection' 
+    connectionName: '${purpose}-vnet-${env}'
   }
   dependsOn: [
     vWan
