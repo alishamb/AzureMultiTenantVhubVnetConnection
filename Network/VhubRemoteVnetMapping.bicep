@@ -3,8 +3,6 @@
 targetScope='subscription'
 param vnets object [] = []
 
-param tags object = {}
-
 param keyVaultName string
 param keyVaultResourceGroup string
 param keyVaultSubscription string
@@ -18,7 +16,7 @@ resource keyVault 'Microsoft.KeyVault/vaults@2023-02-01' existing =  {
   scope: resourceGroup(keyVaultSubscription, keyVaultResourceGroup)
 }
 
-module connectRemoteVnetVhub '../../Modules/VirtualHub/connectRemoteVnet.bicep' = [for i in range(0, length(vnets)): {
+module connectRemoteVnetVhub '../Modules/VirtualHub/connectRemoteVnet.bicep' = [for i in range(0, length(vnets)): {
   name: 'connect-${vnets[i].vnetName}-to-vhub'
   scope: resourceGroup(vwan.subscriptionID, vwan.resourceGroupName)
   params: {

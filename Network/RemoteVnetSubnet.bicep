@@ -7,7 +7,7 @@ param tags object = {}
 targetScope='subscription'
 param rgs object [] = []
 
-module rG '../../Modules/Resourcegroup/resourcegroup.bicep' = [for i in range(0, length(rgs)): {
+module rG '../Modules/Resourcegroup/resourcegroup.bicep' = [for i in range(0, length(rgs)): {
   scope: subscription(rgs[i].subscriptionID)
   name: rgs[i].resourceGroupName
   params: {
@@ -17,7 +17,7 @@ module rG '../../Modules/Resourcegroup/resourcegroup.bicep' = [for i in range(0,
   }
 }]
 
-module virtualnetwork '../../Modules/VirtualNetwork/vnet.bicep' = [for i in range(0, length(vnets)): {
+module virtualnetwork '../Modules/VirtualNetwork/vnet.bicep' = [for i in range(0, length(vnets)): {
   scope: resourceGroup(vnets[i].subscriptionID, vnets[i].resourceGroupName)
   name: '${vnets[i].vnetName}'
   params: {

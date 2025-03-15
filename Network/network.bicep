@@ -18,30 +18,18 @@ param tags object = {}
 param vwan object = {}
 param vWANhubs object [] = []
 
-param dnsZones string [] = []
-
 param vnet object = {}
 param createVnet bool = false
-param dnsZoneResourceGroupName string = ''
-
-param dnsResolver object = {}
-param dnsResolverRuleset object = {}
-param dnsLink bool = false
 
 param hubVirtualNetworkConnection object = {}
-param hubRemoteVirtualNetworkConnection object = {}
-param keyVaultName string
-param keyVaultResourceGroup string
-param keyVaultSubscription string
 
-param env string = 'core'
+param env string = 'main'
 param purpose string = 'dns'
 param stage string = 'prod'
-param region string = 'us'
 
 param rgs object [] = []
 
-module rG '../../Modules/Resourcegroup/resourcegroup.bicep' = [for i in range(0, length(rgs)): {
+module rG '../Modules/Resourcegroup/resourcegroup.bicep' = [for i in range(0, length(rgs)): {
   scope: subscription(rgs[i].subscriptionID)
   name: rgs[i].resourceGroupName
   params: {
@@ -51,7 +39,7 @@ module rG '../../Modules/Resourcegroup/resourcegroup.bicep' = [for i in range(0,
   }
 }]
 
-module virtualnetwork '../../Modules/VirtualNetwork/vnet.bicep' = if (createVnet) {
+module virtualnetwork '../Modules/VirtualNetwork/vnet.bicep' = if (createVnet) {
   name: 'VirtualNetwork'
   scope: resourceGroup(vnet.subscriptionID, vnet.resourceGroupName)
   params: {
@@ -66,7 +54,7 @@ module virtualnetwork '../../Modules/VirtualNetwork/vnet.bicep' = if (createVnet
   ]
 }
 
-module vWan '../../Modules/VirtualWAN/vwan.bicep' = if (createVWAN){
+module vWan '../Modules/VirtualWAN/vwan.bicep' = if (createVWAN){
   name: 'vwan-${env}-${stage}-${vwan.location}' //'vwan-${env}-${purpose}-${stage}-${location}-001'
   scope: resourceGroup(vwan.subscriptionID, vwan.resourceGroupName)
   params: {
@@ -80,7 +68,7 @@ module vWan '../../Modules/VirtualWAN/vwan.bicep' = if (createVWAN){
   }
 }
 
-module vwanHub '../../Modules/VirtualHub/virtualHub.bicep' = [for i in range(0, length(vWANhubs)): {
+module vwanHub '../Modules/VirtualHub/virtualHub.bicep' = [for i in range(0, length(vWANhubs)): {
   name: 'vwanhub-${env}-${stage}-${vWANhubs[i].location}-001'
   scope: resourceGroup(vwan.subscriptionID, vwan.resourceGroupName)
   params: {
@@ -99,7 +87,7 @@ module vwanHub '../../Modules/VirtualHub/virtualHub.bicep' = [for i in range(0, 
   ]
 }]
 
-module connectVnetHub '../../Modules/VirtualHub/connectVnet.bicep' = if (!empty(hubVirtualNetworkConnection)){
+module connectVnetHub '../Modules/VirtualHub/connectVnet.bicep' = if (!empty(hubVirtualNetworkConnection)){
   name: 'connect-vnet-to-hub'
   scope: resourceGroup(vwan.subscriptionID, vwan.resourceGroupName)
   params: {

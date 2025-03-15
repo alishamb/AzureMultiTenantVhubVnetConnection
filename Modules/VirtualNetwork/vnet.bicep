@@ -44,9 +44,6 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2023-04-01' = {
       }
     }]
   }
-  dependsOn: [
-    networkSecurityGroup
-  ]
 }
 
 module networkSecurityGroup '../Networksecuritygroup/inboundNSG.bicep' = [for subnet in subnets: {
