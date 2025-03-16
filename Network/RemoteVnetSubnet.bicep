@@ -1,10 +1,9 @@
 //Networking file for Deploying RG (optional), multiple VNETs & Subnet in any subscription (No Connection to VHubs)
-//Names of resources taken AS IS
-param vnets object [] = []
-
-param tags object = {}
-
+//Names of resources taken AS 
 targetScope='subscription'
+
+param vnets object [] = []
+param tags object = {}
 param rgs object [] = []
 
 module rG '../Modules/Resourcegroup/resourcegroup.bicep' = [for i in range(0, length(rgs)): {

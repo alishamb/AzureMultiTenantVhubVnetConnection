@@ -1,14 +1,13 @@
 //Networking file for Deploying Connection to vhub and Vnets
 //Names of resources taken AS IS
 targetScope='subscription'
-param vnets object [] = []
 
 param keyVaultName string
 param keyVaultResourceGroup string
 param keyVaultSubscription string
+param vnets object [] = []
 param vwan object
-
-param env string = 'core'
+param env string = 'main'
 param stage string = 'prod'
 
 resource keyVault 'Microsoft.KeyVault/vaults@2023-02-01' existing =  {
@@ -27,8 +26,8 @@ module connectRemoteVnetVhub '../Modules/VirtualHub/connectRemoteVnet.bicep' = [
     vhubName: 'vwanhub-${env}-${stage}-${vnets[i].location}-001'
     subscriptionID: vwan.SubscriptionID
     tenantID: vwan.tenantID
-    clientID: keyVault.getSecret('clientid-core')
-    clientSecret: keyVault.getSecret('clientsecret-core')
+    clientID: keyVault.getSecret('clientid-Main')
+    clientSecret: keyVault.getSecret('clientsecret-Main')
     connectionName: '${vnets[i].vnetName}-dns-connection' 
     location: vnets[i].location
   }
