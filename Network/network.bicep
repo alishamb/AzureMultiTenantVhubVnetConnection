@@ -1,32 +1,23 @@
 targetScope='subscription'
-param createVWAN bool = false
 
+param createVWAN bool = false
 @description('Optional. True if branch to branch traffic is allowed.')
 param allowBranchToBranchTraffic bool = false
-
 @description('Optional. True if VNET to VNET traffic is allowed.')
 param allowVnetToVnetTraffic bool = true
-
 @description('Optional. VPN  encryption to be disabled or not.')
 param disableVpnEncryption bool = false
-
 param type string = 'Standard'
-
 @description('Optional. Tags for VWAN.')
 param tags object = {}
-
 param vwan object = {}
 param vWANhubs object [] = []
-
 param vnet object = {}
 param createVnet bool = false
-
 param createHubVirtualNetworkConnection bool = false
-
 param env string = 'main'
 param purpose string = 'dns'
 param stage string = 'prod'
-
 param rgs object [] = []
 
 module rG '../Modules/Resourcegroup/resourcegroup.bicep' = [for i in range(0, length(rgs)): {
@@ -55,10 +46,10 @@ module virtualnetwork '../Modules/VirtualNetwork/vnet.bicep' = if (createVnet) {
 }
 
 module vWan '../Modules/VirtualWAN/vwan.bicep' = if (createVWAN){
-  name: 'vwan-${env}-${stage}-${vwan.location}' //'vwan-${env}-${purpose}-${stage}-${location}-001'
+  name: 'vwan-${env}-${stage}-${vwan.location}' 
   scope: resourceGroup(vwan.subscriptionID, vwan.resourceGroupName)
   params: {
-    name: 'vwan-${env}-${stage}-${vwan.location}' //'vwan-${env}-${purpose}-${stage}-${location}-001'
+    name: 'vwan-${env}-${stage}-${vwan.location}'
     location: vwan.location
     tags: tags
     allowBranchToBranchTraffic: allowBranchToBranchTraffic
@@ -66,6 +57,9 @@ module vWan '../Modules/VirtualWAN/vwan.bicep' = if (createVWAN){
     disableVpnEncryption: disableVpnEncryption
     type: type 
   }
+  dependsOn: [
+    rG
+  ]
 }
 
 module vwanHub '../Modules/VirtualHub/virtualHub.bicep' = [for i in range(0, length(vWANhubs)): {
