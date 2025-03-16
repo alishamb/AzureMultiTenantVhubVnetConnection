@@ -12,10 +12,8 @@ parameters:
      default: westus
    - name : resourceGroupName
      displayName: Keyvault RG Name
-     default: AutomationResources
    - name : keyVaultName
      displayName: Key Vault Name
-     default: automationresource
    - name : subscriptionID
      displayName: Subscription ID
    - name : tenantName
@@ -24,13 +22,13 @@ parameters:
      values:
       - Main
       - Remote
-    - name : purpose
-      displayName: Purpose of Deployment
-      default: Vnet-Hub-Connection
-      values:
-        - Vnet-Hub-Connection
-        - Main Network Deployment
-        - Remote Network Deployment
+   - name : purpose
+     displayName: Purpose of Deployment
+     default: Vnet-Hub-Connection
+     values:
+      - Main Network Deployment
+      - Remote Network Deployment
+      - Vnet-Hub-Connection
 
 variables:
 - name: environment
@@ -38,19 +36,19 @@ variables:
 - name: parameterFileName
   ${{ if eq(parameters.purpose, 'Vnet-Hub-Connection') }}:
     value: "network.remote.vnetConnection.parameters.json"
-  ${{ if eq(parameters.purpose, 'Main Network Deployment') }}:
+  ${{ elseif eq(parameters.purpose, 'Main Network Deployment') }}:
     value: "network.main.parameters.json"
-  ${{ if eq(parameters.purpose, 'Main Network Deployment') }}:
+  ${{ elseif eq(parameters.purpose, 'Remote Network Deployment') }}:
     value: "network.remote.parameters.json"
 - name: bicepFileName
   ${{ if eq(parameters.purpose, 'Vnet-Hub-Connection') }}:
-    value: "vhubRemoteVnetMapping.bicep"
-  ${{ if eq(parameters.purpose, 'Main Network Deployment') }}:
+    value: "VhubRemoteVnetMapping.bicep"
+  ${{ elseif eq(parameters.purpose, 'Main Network Deployment') }}:
     value: "network.bicep"
-  ${{ if eq(parameters.purpose, 'Remote Network Deployment') }}:
+  ${{ elseif eq(parameters.purpose, 'Remote Network Deployment') }}:
     value: "RemoteVnetSubnet.bicep"
 
-name: 'INFRA_DEPLOY_Tenent_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)'
+name: 'NETWORK_DEPLOYMENT_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)'
 stages:
 ################ Linting and Validation ########################################
 - stage: Build
@@ -65,7 +63,7 @@ stages:
             displayName: 'Run Bicep linter'   
           
 - stage: AkvSecret
-  displayName: Fetch keyvault Secrets
+  displayName: Fetch Key Vault Secrets
   jobs:
     - job: akvSecretdeploy
       displayName: Fetch Secrets from Keyvault
@@ -77,24 +75,23 @@ stages:
       - task: AzurePowerShell@5
         name: akvsecretgenerate
         inputs:
-          azureSubscription: 'SPN-core1'
+          azureSubscription: 'Service-Connection-Name' #Update to a service connection that has access to the Key Vault
           ScriptType: 'InlineScript'
           Inline: |
             $resourceGroupName = "${{ parameters.resourceGroupName }}"
             $keyVaultName =  "${{ parameters.keyVaultName }}"               
             $clientIDSecretName = "clientid-${{ parameters.tenantName }}"
-            Write-Host "$clientIDSecretName"
             $clientSecretSecretName = "clientsecret-${{ parameters.tenantName }}"
-            $tenantIDSecretName = "tenantid-${{ parameters.tenantName }}"                  
+            $tenantIDSecretName = "tenantid-${{ parameters.tenantName }}"     
             # Authenticate to Azure and fetch secrets from Key Vault
             $keyVaultSecrets = @{
                 "clientid" = Get-AzKeyVaultSecret -VaultName $keyVaultName -Name $clientIDSecretName -AsPlainText   
                 "clientsecret" = Get-AzKeyVaultSecret -VaultName $keyVaultName -Name $clientSecretSecretName -AsPlainText   
                 "tenantid" = Get-AzKeyVaultSecret -VaultName $keyVaultName -Name $tenantIDSecretName -AsPlainText   
             }  
-            $clientid =  $($keyVaultSecrets['clientid']) 
+            $clientid =  $($keyVaultSecrets['clientid'])
             $clientsecret = $($keyVaultSecrets['clientsecret'])
-            $tenantid =  $($keyVaultSecrets['tenantid'])       
+            $tenantid =  $($keyVaultSecrets['tenantid'])  
             Write-Host "##vso[task.setvariable variable=clientid;isOutput=true]$clientid"
             Write-Host "##vso[task.setvariable variable=clientsecret;isOutput=true]$clientsecret"
             Write-Host "##vso[task.setvariable variable=tenantid;isOutput=true]$tenantid"
@@ -109,20 +106,17 @@ stages:
         inputs:
           targetPath: $(System.DefaultWorkingDirectory)
           artifactName: infratenantlevel
-
-
-#####################################################################
 - stage: Validate
   displayName: Run What-if Command
   dependsOn:
-       - AkvSecret
+    - AkvSecret
   jobs: 
        - job: Validate_Deployment
          variables:
             clientid: $[stageDependencies.AkvSecret.akvSecretdeploy.outputs['akvsecretgenerate.clientid']]
             clientsecret: $[stageDependencies.AkvSecret.akvSecretdeploy.outputs['akvsecretgenerate.clientsecret']]
             tenantid: $[stageDependencies.AkvSecret.akvSecretdeploy.outputs['akvsecretgenerate.tenantid']]
-         displayName:  'Validate'
+         displayName:  'Validate Deployments'
          steps:
             - task: DownloadBuildArtifacts@0
               inputs:
@@ -139,37 +133,38 @@ stages:
                   az --version
                   az login --service-principal -u $(clientid) -p $(clientsecret) --tenant $(tenantid)
                   az account set --name ${{ parameters.subscriptionID }}
-                  az deployment sub what-if --name ${{ parameters.subscriptionID }}-vhubvnet-whatif --location ${{parameters.location}}  --template-file ./Network/$(bicepFileName) --parameters ./Network/parameters/$(parameterFileName)
+                  az deployment sub what-if --name ${{ parameters.subscriptionID }}-whatif --location ${{parameters.location}}  --template-file ./Network/$(bicepFileName) --parameters ./Network/parameters/$(parameterFileName)
 - stage: Deploy
-  displayName: Deploy Resources
+  displayName: Deploy Network Resources
   dependsOn:
-       - Validate
-       - AkvSecret
-  jobs: 
-       - deployment: Deploy_Resources
-         environment: $(environment)
-         variables:
-            clientid: $[stageDependencies.AkvSecret.akvSecretdeploy.outputs['akvsecretgenerate.clientid']]
-            clientsecret: $[stageDependencies.AkvSecret.akvSecretdeploy.outputs['akvsecretgenerate.clientsecret']]
-            tenantid: $[stageDependencies.AkvSecret.akvSecretdeploy.outputs['akvsecretgenerate.tenantid']]
-         displayName:  'Deploy'
-         strategy:
-           runOnce:
-            deploy:
-              steps:
-              - task: DownloadBuildArtifacts@0
-                inputs:
-                    buildType: 'current'
-                    downloadType: 'single'
-                    artifactName: 'infratenantlevel'
-                    downloadPath: '$(System.ArtifactsDirectory)'            
-              - task: Bash@3
-                displayName: 'Deployment'
-                enabled: true
-                inputs:
-                  targetType: 'inline'
-                  script: |             
-                    az --version
-                    az login --service-principal -u $(clientid) -p $(clientsecret) --tenant $(tenantid)
-                    az account set --name ${{ parameters.subscriptionID }}
-                    az deployment sub create --name ${{ parameters.subscriptionID }}-vhubvnet --location ${{parameters.location}}  --template-file ./Network/$(bicepFileName) --parameters ./Network/parameters/$(parameterFileName)
+    - Validate
+    - AkvSecret
+  variables:
+    clientid: $[stageDependencies.AkvSecret.akvSecretdeploy.outputs['akvsecretgenerate.clientid']]
+    clientsecret: $[stageDependencies.AkvSecret.akvSecretdeploy.outputs['akvsecretgenerate.clientsecret']]
+    tenantid: $[stageDependencies.AkvSecret.akvSecretdeploy.outputs['akvsecretgenerate.tenantid']]
+  jobs:
+  - deployment: deploy
+    environment: $(environment)
+    displayName:  'Deploy Network Resources'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+            - checkout: self
+            - task: DownloadBuildArtifacts@0
+              inputs:
+                  buildType: 'current'
+                  downloadType: 'single'
+                  artifactName: 'infratenantlevel'
+                  downloadPath: '$(System.ArtifactsDirectory)'          
+            - task: Bash@3
+              displayName: 'Deployment'
+              enabled: true
+              inputs:
+                targetType: 'inline'
+                script: |             
+                  az --version
+                  az login --service-principal -u $(clientid) -p $(clientsecret) --tenant $(tenantid)
+                  az account set --name ${{ parameters.subscriptionID }}
+                  az deployment sub create --name ${{ parameters.subscriptionID }}-network1 --location ${{parameters.location}}  --template-file ./Network/$(bicepFileName) --parameters ./Network/parameters/$(parameterFileName)
