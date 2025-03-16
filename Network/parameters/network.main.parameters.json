@@ -8,6 +8,11 @@
               "subscriptionID": "",
               "resourceGroupName": "rg-dns-network-westus-001",
               "location": "westus"
+          },
+          {
+            "subscriptionID": "",
+            "resourceGroupName": "rg-vwan",
+            "location": "eastus"
           }
       ]
     },
@@ -18,18 +23,18 @@
       "value": {
           "subscriptionID": "",
           "resourceGroupName": "rg-dns-network-westus-001",
-          "location": "westus",
+          "location": "eastus",
           "addressPrefixes": [
-            "10.149.98.0/25"
+            ""
           ],
           "subnets": [
             {
-              "name": "Snet-core-pdr-outbound-westus", 
-              "subnetPrefix": "10.149.98.0/27"
+              "name": "subnet1", 
+              "subnetPrefix": ""
             },
             {
-                "name": "AzureBastionSubnet",
-                "subnetPrefix": "10.149.98.64/26"
+                "name": "Subnet2",
+                "subnetPrefix": ""
             }
           ]
         }
@@ -37,9 +42,12 @@
     "createVWAN": {
       "value": true
     },
+    "createHubVirtualNetworkConnection": {
+      "value": true
+    },
     "vwan": {
       "value": {
-          "resourceGroupName": "rg-vwan-prod-eastus-001",
+          "resourceGroupName": "rg-vwan",
           "subscriptionID": "",
           "location": "eastus"
       }
@@ -47,7 +55,7 @@
     "vWANhubs": {
       "value": [
         {
-          "addressSpace": "10.149.96.0/23",
+          "addressSpace": "",
           "location": "eastus",
           "routingPreference": "ExpressRoute",
           "virtualRouterAsn": 65515,

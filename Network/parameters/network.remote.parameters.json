@@ -20,12 +20,12 @@
             "vnetName": "rg-remote-vnet",
             "location": "eastus",
             "addressPrefixes": [
-              "10.149.98.0/25"
+              ""
             ],
             "subnets": [
               {
                 "name": "default",
-                "subnetPrefix": "10.149.98.64/26"
+                "subnetPrefix": ""
               }
             ]
           }

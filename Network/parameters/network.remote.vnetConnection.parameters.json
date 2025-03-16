@@ -3,17 +3,17 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
       "keyVaultName": {
-        "value": "automationresource"
+        "value": ""
       },
       "keyVaultResourceGroup": {
-        "value": "AutomationResources"
+        "value": ""
       },
       "keyVaultSubscription": {
         "value": ""
       },
       "vwan": {
         "value": {
-            "resourceGroupName": "rg-vwan-prod-eastus-001",
+            "resourceGroupName": "rg-vwan",
             "subscriptionID": "",
             "location": "eastus",
             "tenantID": ""
@@ -26,16 +26,8 @@
             "subscriptionID": "",
             "resourceGroupName": "rg-remote",
             "vnetName": "rg-remote-vnet",
-            "location": "eastus",
-            "addressPrefixes": [
-              "10.149.98.0/25"
-            ],
-            "subnets": [
-              {
-                "name": "default",
-                "subnetPrefix": "10.149.98.64/26"
-              }
-            ]
+            "location": "eastus"
+        
           }
         ]
       }
